@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +44,9 @@ public class DocumentsController {
     @Value("${prizmdoc.pas.secretKey:#{null}}")
     private String pasSecretKey;
 
+    @Value("${prizmdoc.useClientSideViewing:#{false}}")
+    private boolean useClientSideViewing;
+
     @GetMapping("documents")
     @ResponseBody
     public Stream<String> get() throws HttpException {
@@ -63,11 +67,14 @@ public class DocumentsController {
 
         // 1. Create a new viewing session
         HttpPost postRequest = new HttpPost(pasBaseUrl + "ViewingSession");
-        JsonObject body = Json.createObjectBuilder()
+        JsonObjectBuilder bodyBuilder = Json.createObjectBuilder()
                 .add("source", Json.createObjectBuilder()
                         .add("type", "upload")
-                        .add("displayName", requestedFilename)
-                ).build();
+                        .add("displayName", requestedFilename));
+        if (useClientSideViewing) {
+            bodyBuilder.add("allowedClientFileFormats", Json.createArrayBuilder().add("pdf"));
+        }
+        JsonObject body = bodyBuilder.build();
 
         if (cloudApiKey != null) {
             postRequest.addHeader("Acs-Api-Key", cloudApiKey);
@@ -81,7 +88,8 @@ public class DocumentsController {
 
         HttpResponse response = httpClient.execute(postRequest);
         if (response.getStatusLine().getStatusCode() != 200) {
-            throw new HttpException("POST /ViewingSession HTTP request returned an error: " + response.getStatusLine() + " " + EntityUtils.toString(response.getEntity()));
+            throw new HttpException("POST /ViewingSession HTTP request returned an error: " + response.getStatusLine()
+                    + " " + EntityUtils.toString(response.getEntity()));
         }
 
         String responseJson = EntityUtils.toString(response.getEntity());
@@ -121,7 +129,8 @@ public class DocumentsController {
                 log.info("Uploading source document");
                 HttpResponse putResponse = httpClient.execute(putRequest);
                 if (putResponse.getStatusLine().getStatusCode() != 200) {
-                    throw new HttpException("PUT /SourceFile HTTP request returned an error: " + response.getStatusLine() + " " + EntityUtils.toString(response.getEntity()));
+                    throw new HttpException("PUT /SourceFile HTTP request returned an error: "
+                            + response.getStatusLine() + " " + EntityUtils.toString(response.getEntity()));
                 }
             } catch (Exception e) {
                 log.error(e.toString());

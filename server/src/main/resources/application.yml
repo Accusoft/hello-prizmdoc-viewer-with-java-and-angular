@@ -7,6 +7,11 @@ prizmdoc:
     # The apiKey property is only required for a PrizmDoc Cloud configuration.
     apiKey: YOUR_API_KEY
 
+  # Enable or disable usage of the Client Side Viewing Feature
+  # Enable by setting this value to true, disable by setting it to false or commenting it out
+  # Client Side Viewing requires your server to be licensed using a metered license
+  useClientSideViewing: false
+
 spring:
   application:
     name: Hello PrizmDoc Viewer!

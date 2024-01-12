@@ -47,6 +47,16 @@ prizmdoc:
 You will need to uncomment the "Self-Hosted PAS Configuration" section,
 and comment out the "PrizmDoc Cloud Configuration" section to enable the correct proxy configuration.
 
+### Hybrid Viewing
+
+This sample includes a [Hybrid Viewing](https://help.accusoft.com/PrizmDoc/latest/HTML/client-side-pdf.html) option, which allows users to seamlessly switch between server-side and client-side rendering modes, providing a faster and smoother viewing experience.
+
+To enable client-side viewing, update the following configuration in `application.yml`:
+
+```yml
+  useClientSideViewing: true
+```
+
 ## Running the Sample
 
 First, build the client and server applications with:

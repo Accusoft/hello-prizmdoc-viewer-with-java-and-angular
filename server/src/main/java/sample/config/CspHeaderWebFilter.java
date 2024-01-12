@@ -10,11 +10,12 @@ import reactor.core.publisher.Mono;
 @Component
 public class CspHeaderWebFilter implements WebFilter {
 
-    @Override
-    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        exchange.getResponse()
-          .getHeaders()
-          .add("Content-Security-Policy", "script-src 'self'");
-        return chain.filter(exchange);
-    }
+  @Override
+  public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+    exchange.getResponse()
+        .getHeaders()
+        .add("Content-Security-Policy",
+            "script-src 'self'; worker-src blob:");
+    return chain.filter(exchange);
+  }
 }
