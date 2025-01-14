@@ -83,6 +83,17 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+              <groupId>org.owasp</groupId>
+              <artifactId>dependency-check-maven</artifactId>
+              <version>8.2.1</version>
+              <configuration>
+                  <dataDirectory>${dc.data.dir}</dataDirectory>
+                  <format>JSON</format>
+                  <outputDirectory>${dc.output.dir}</outputDirectory>
+                  <prettyPrint>true</prettyPrint>
+              </configuration>
+            </plugin>
         </plugins>
     </build>
 
