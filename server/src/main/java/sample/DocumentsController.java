@@ -1,14 +1,17 @@
 package sample;
 
-import org.apache.http.HttpException;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.FileEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,10 +21,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonReader;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -87,12 +90,12 @@ public class DocumentsController {
         log.info("Creating viewing session");
 
         HttpResponse response = httpClient.execute(postRequest);
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new HttpException("POST /ViewingSession HTTP request returned an error: " + response.getStatusLine()
-                    + " " + EntityUtils.toString(response.getEntity()));
+        if (response.getCode() != 200) {
+            throw new HttpException("POST /ViewingSession HTTP request returned an error: " + (new StatusLine(response).toString())
+                    + " " + EntityUtils.toString(((ClassicHttpResponse)response).getEntity()));
         }
 
-        String responseJson = EntityUtils.toString(response.getEntity());
+        String responseJson = EntityUtils.toString(((ClassicHttpResponse)response).getEntity());
         log.debug("Received JSON: {}", responseJson);
 
         // 2. Send the viewingSessionId and viewer assets to the browser right away so
@@ -123,14 +126,14 @@ public class DocumentsController {
             }
 
             putRequest.addHeader("Content-Type", "application/octet-stream");
-            putRequest.setEntity(new FileEntity(document));
+            putRequest.setEntity(new FileEntity(document, ContentType.APPLICATION_OCTET_STREAM));
 
             try {
                 log.info("Uploading source document");
                 HttpResponse putResponse = httpClient.execute(putRequest);
-                if (putResponse.getStatusLine().getStatusCode() != 200) {
+                if (putResponse.getCode() != 200) {
                     throw new HttpException("PUT /SourceFile HTTP request returned an error: "
-                            + response.getStatusLine() + " " + EntityUtils.toString(response.getEntity()));
+                            + (new StatusLine(response).toString()) + " " + EntityUtils.toString(((ClassicHttpResponse)response).getEntity()));
                 }
             } catch (Exception e) {
                 log.error(e.toString());

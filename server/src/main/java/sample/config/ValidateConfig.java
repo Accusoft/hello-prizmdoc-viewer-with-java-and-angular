@@ -1,12 +1,13 @@
 package sample.config;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,9 +15,9 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
@@ -66,7 +67,7 @@ public class ValidateConfig {
         }
     }
 
-    // The PAS base URL MUST end with a trailing slash in order for the embedded Spring Gateway reverse proxy to work correctly.
+    // The PAS base URL MUST end with a trailing slash in order for the embedded Zuul reverse proxy to work correctly.
     private void ensurePasBaseUrlEndsWithSlash() {
         if (!pasBaseUrl.endsWith("/")) {
             exitWithMessage("The PAS base URL (\"prizmdoc.pas.baseUrl\" in application.yml) must end with a trailing slash.");
@@ -104,9 +105,11 @@ public class ValidateConfig {
         String responseJson = "";
         try {
             response = httpClient.execute(postRequest);
-            statusCode = response.getStatusLine().getStatusCode();
-            responseJson = EntityUtils.toString(response.getEntity());
+            statusCode = response.getCode();
+            responseJson = EntityUtils.toString(((ClassicHttpResponse)response).getEntity());
         } catch (IOException ignored) {
+        } catch (Exception e) {
+            // Ignore JSON parsing errors. errorCode will remain empty string.
         }
 
         String errorCode = "";
@@ -164,10 +167,10 @@ public class ValidateConfig {
         String errorCode = "";
         try {
             response = httpClient.execute(request);
-            statusCode = response.getStatusLine().getStatusCode();
+            statusCode = response.getCode();
 
             if (statusCode != 200) {
-                String responseJson = EntityUtils.toString(response.getEntity());
+                String responseJson = EntityUtils.toString(((ClassicHttpResponse)response).getEntity());
                 try (JsonReader reader = Json.createReader(new StringReader(responseJson))) {
                     errorCode = reader.readObject().getString("errorCode");
                 } catch (Exception e) {
@@ -175,6 +178,8 @@ public class ValidateConfig {
                 }
             }
         } catch (IOException ignored) {
+        }catch (Exception e) {
+            // Ignore JSON parsing errors. errorCode will remain empty string.
         }
 
         if (statusCode == 403 /* Forbidden */ && errorCode.equals("InvalidSecret")) {

@@ -4,7 +4,7 @@ A small Java Spring and Angular application which shows how to use PrizmDoc View
 
 ## Pre-Requisites
 
-- [JDK 11] or [JDK 8] or [JDK 18]
+- [JDK 17]
 - [Maven] 3.0+
 
 ## Setup
@@ -139,8 +139,6 @@ This will launch the a client dev server at `http://localhost:4200` and open the
 
 The dev server (on port `4200`) is configured to proxy api routes to the application server (on port `8080`) so that the client can make REST API calls to the application server (this proxy setting is configured in `client/proxy.conf.json`).
 
-[JDK 18]: https://adoptium.net/temurin/releases?version=18
-[JDK 11]: https://adoptopenjdk.net/releases.html?variant=openjdk11&jvmVariant=hotspot
-[JDK 8]: https://adoptopenjdk.net/releases.html?variant=openjdk8&jvmVariant=hotspot
+[JDK 17]: https://adoptium.net/temurin/releases?version=17
 [Maven]: https://maven.apache.org/index.html
 [PrizmDoc Cloud]: https://cloud.accusoft.com
